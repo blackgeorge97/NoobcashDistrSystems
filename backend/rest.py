@@ -17,6 +17,7 @@ from transaction import Transaction
 app = Flask(__name__)
 CORS(app)
 blockchain = Blockchain()
+wallet = wallet()
 
 
 #.......................................................................................
