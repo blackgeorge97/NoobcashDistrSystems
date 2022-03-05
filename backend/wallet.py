@@ -16,13 +16,13 @@ from uuid import uuid4
 
 class wallet:
 
-	def __init__():
+	def __init__(self):
 		##set
 
-		#self.public_key
-		#self.private_key
-		#self_address
-		#self.transactions
+		self.public_key
+		self.private_key
+		self.address
+		self.transactions
 
 	def balance():
-
+		return

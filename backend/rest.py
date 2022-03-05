@@ -3,12 +3,11 @@ from flask import Flask, jsonify, request, render_template
 from flask_cors import CORS
 
 
-import block
-import node
-import blockchain
-import wallet
-import transaction
-import wallet
+from block import Block
+from node import node
+from blockchain import Blockchain
+from wallet import wallet
+from transaction import Transaction
 
 
 ### JUST A BASIC EXAMPLE OF A REST API WITH FLASK
