@@ -1,17 +1,20 @@
-import block
-import wallet
+from block import Block
+from blockchain import Blockchain
+from wallet import wallet
+from transaction import Transaction
 
-MINING_DIFFICULTY = 1
+MINING_DIFFICULTY = 4
 
 class node:
-	def __init__(self):
+	def __init__(self, n):
 		self.NBC=100;
 		##set
 
-		self.chain
-		self.current_id_count
-		self.NBCs
-		self.wallet
+		self.chain = Blockchain()
+		self.current_id_count = 0
+		self.NBCs = 100*n
+		self.wallet = wallet()
+		self.utxos_per_node = {}
 
 		self.ring = []   #here we store information for every node, as its id, its address (ip:port) its public key and its balance 
 
@@ -31,20 +34,56 @@ class node:
 		return
 
 
-	def create_transaction(sender, receiver, signature):
+	def create_transaction(self, sender, receiver, amount):
 		#remember to broadcast it
-		return
-
+		total_sum = 0
+		used_tran = []
+		for utxo in self.utxos_per_nodes[sender]:
+			total_sum += utxo['amount']
+			used_tran.append(utxo)
+			if(total_sum >= amount):
+				break
+		if (total_sum < amount):
+			print("not enough nbc")
+			return
+		for used in used_tran:
+            #print(i)
+			self.utxos_per_nodes[sender].remove(used)
+		new_tran = Transaction(sender, receiver, amount, used_tran)
+		outputs = []
+		out1 = {
+			'id' : new_tran.transaction_id,
+			'receiver' : new_tran.receiver_address,
+			'amount' : new_tran.amount
+		}
+		outputs.append(out1)
+		self.utxos_per_nodes[receiver].append(out1)
+		if (total_sum > amount):
+			out2 = {
+				'id' : new_tran.transaction_id,
+				'receiver' : new_tran.sender_address,
+				'amount' : total_sum - new_tran.amount
+			}
+			outputs.append(out2)
+			self.utxos_per_nodes[sender].append(out2)
+		
+		new_tran.transaction_outputs = outputs
+		new_tran.Signature = new_tran.sign_transaction(self.wallet.private_key)
+		self.broadcast_transaction(new_tran)
+		self.add_transaction_to_block(new_tran)
+        
 
 	def broadcast_transaction():
 		return
 
 
 
-	def validdate_transaction():
+	def validate_transaction(self, transaction, signature, public_key):
 		#use of signature and NBCs balance
-		return
-
+		if transaction.verify_signature(public_key, signature):
+			return True
+		return False
+ 
 
 	def add_transaction_to_block():
 		#if enough transactions  mine

@@ -12,7 +12,7 @@ from time import time
 from urllib.parse import urlparse
 from uuid import uuid4
 
-
+import transaction
 
 class wallet:
 
@@ -28,8 +28,15 @@ class wallet:
 		key = RSA.generate(1024, random_number)
 		private_key = key.exportKey(format='DER')
 		public_key = key.publickey().exportKey(format='DER')
-		return binascii.hexlify(private_key).decode('ascii'), binascii.hexlify(public_key).decode('ascii')
+		return binascii.hexlify(private_key).decode('utf8'), binascii.hexlify(public_key).decode('utf8')
 
 
-	def balance():
-		return
+	def balance(self):
+		bal = 0
+		for tran in self.transactions:
+			bal += tran.value
+		return bal
+
+if __name__ == "__main__":
+	wallet = wallet()
+	print(wallet.private_key)

@@ -16,9 +16,9 @@ from transaction import Transaction
 
 app = Flask(__name__)
 CORS(app)
-blockchain = Blockchain()
-wallet = wallet()
 
+blockchain = Blockchain()
+node = node(5)
 
 #.......................................................................................
 
@@ -28,7 +28,7 @@ wallet = wallet()
 
 @app.route('/transactions/get', methods=['GET'])
 def get_transactions():
-    transactions = blockchain.transactions
+    transactions = node.chain.transactions
 
     response = {'transactions': transactions}
     return jsonify(response), 200
