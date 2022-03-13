@@ -42,14 +42,26 @@ class Transaction:
 
 
     def to_dict(self):
-        tran_dict = {   
+        tran_dict = OrderedDict({   
             'id' : self.transaction_id,
             'sender' : self.sender_address, 
 		    'receiver' : self.receiver_address,  
 		    'amount' : self.amount, 
             'inputs' : self.transaction_inputs, 
             'outputs' : self.transaction_outputs,
-        }
+        })
+        return tran_dict
+
+    def to_dict_signed(self):
+        tran_dict = OrderedDict({   
+            'id' : self.transaction_id,
+            'sender' : self.sender_address, 
+		    'receiver' : self.receiver_address,  
+		    'amount' : self.amount, 
+            'inputs' : self.transaction_inputs, 
+            'outputs' : self.transaction_outputs,
+            'signature' : self.Signature
+        })
         return tran_dict
         
 
