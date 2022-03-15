@@ -21,7 +21,7 @@ class wallet:
 
 		self.private_key, self.public_key = self.generate_keys()
 		self.address = self.public_key
-		self.transactions = []
+		self.utxos = []
 
 	def generate_keys(self):
 		random_number = Random.new().read
@@ -33,8 +33,8 @@ class wallet:
 
 	def balance(self):
 		bal = 0
-		for tran in self.transactions:
-			bal += tran.value
+		for tran in self.utxos:
+			bal += tran['amount']
 		return bal
 
 if __name__ == "__main__":
