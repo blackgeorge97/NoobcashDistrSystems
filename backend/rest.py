@@ -124,7 +124,7 @@ def receive_block():
 
 @app.route('/blockchain/send', methods=['GET'])
 def return_blockchain():
-    response = {'blockchain' : node.chain.to_dict(), 'tran_queue' : node.tran_queue}
+    response = {'blockchain' : node.chain.to_dict(), 'tran_queue' : node.tran_queue, 'used_queue' : node.used_queue}
     return jsonify(response), 200
 
 

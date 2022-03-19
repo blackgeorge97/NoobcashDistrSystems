@@ -27,6 +27,7 @@ class node:
 		self.utxos_per_node = {}
 		self.utxos_lock = Lock()
 		self.tran_queue = []
+		self.used_queue = []
 		self.tran_queue_lock = Lock()
 		self.mining = False
 		self.mining_lock = Lock()
@@ -104,6 +105,7 @@ class node:
 			self.tran_queue_lock.release()
 			return
 		tran = self.tran_queue.pop(0)
+		self.used_queue.append(tran)
 		self.add_transaction_to_block(tran)
 
 
@@ -220,6 +222,9 @@ class node:
 				return False
 			if (block.myHash()[:MINING_DIFFICULTY] == '0' * MINING_DIFFICULTY):
 				block.hash = block.myHash()
+				self.tran_queue_lock.acquire()
+				self.used_queue = []
+				self.tran_queue_lock.release()
 				self.mining = False
 				self.mining_lock.release()
 				return True
@@ -254,9 +259,15 @@ class node:
 		block.hash = hash
 		if self.valid_proof(block) and cur_block.hash == block.previousHash:
 			self.chain.add_new_block(block)
-			#self.tran_queue_lock.acquire()
-			#self.tran_queue = queue
-			#self.tran_queue_lock.release()
+			self.tran_queue_lock.acquire()
+			for tran in block.listOfTransactions:
+				if tran in self.tran_queue:
+					self.tran_queue.remove(tran)
+				elif tran in self.used_queue:
+					self.used_queue.remove(tran)
+			self.tran_queue = self.used_queue + self.tran_queue
+			self.used_queue = []
+			self.tran_queue_lock.release()
 			self.mining_lock.release()
 			return True
 		self.resolve_conflicts() # Here we do concencus
@@ -295,15 +306,17 @@ class node:
 				continue
 			data = requests.get('http://' + node['address'] + '/blockchain/send').json()
 			new_chain = data['blockchain']
-			#new_queue = data['tran_queue']
+			new_queue = data['tran_queue']
+			new_used_queue = data['used_queue']
 			new_length = len(new_chain)
 			if (new_length >= current_length):
 				(chain, validation) = self.validate_chain(new_chain)
 				if validation:
 					self.chain.chain = chain
-					#self.tran_queue_lock.acquire()
-					#self.tran_queue = new_queue
-					#self.tran_queue_lock.release()
+					self.tran_queue_lock.acquire()
+					self.tran_queue = new_queue
+					self.used_queue = new_used_queue
+					self.tran_queue_lock.release()
 					current_length = len(self.chain.chain)
 		self.mining_lock.release()
 
