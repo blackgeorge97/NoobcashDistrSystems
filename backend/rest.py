@@ -12,6 +12,7 @@ from wallet import wallet
 from transaction import Transaction
 from argparse import ArgumentParser
 import time
+import threading
 
 
 bootstrap_ip = '127.0.0.1'
@@ -30,6 +31,7 @@ bootstrap = args.bootstrap
 nodes = args.nodes
 
 app = Flask(__name__)
+app.config['JSON_SORT_KEYS'] = False
 
 node = node(bootstrap, ip, port, nodes, bootstrap_ip, bootstrap_port)
 
@@ -47,14 +49,6 @@ def register_node():
     response = {'Status' : 'Success'}
     return jsonify(response), 200
 
-@app.route('/network/send', methods=['GET'])
-def send_reg_data():
-    if node.send_reg_info():
-        response = {'Status' : 'Success'}
-        return jsonify(response), 200
-    else:
-        response = {'Status' : 'Failure'}
-        return jsonify(response), 200
 
 @app.route('/network/receive', methods=['POST'])
 def receive_reg_data():
@@ -80,15 +74,15 @@ def create_transaction():
     for i in node.ring:
         if i['id'] == id:
             receiver_public_key = i['public_key']
-            if node.create_transaction(wallet.public_key, receiver_public_key, amount):
+            if node.create_transaction(node.wallet.public_key, receiver_public_key, amount):
                 response = {'Status' : 'success'}
                 return jsonify(response), 200
             else:
                 response = {'Status' : 'Failure: Not enough nbcs'}
-                return jsonify(response), 250
+                return jsonify(response), 201
     
     response = {'Status' : 'Node does not exist'}
-    return jsonify(response), 300
+    return jsonify(response), 202
 
 @app.route('/transaction/receive', methods=['POST'])
 def receive_transaction():
@@ -104,7 +98,7 @@ def receive_transaction():
         response = {'Status' : 'success'}
         return jsonify(response), 200
     response = {'Status' : 'Failure: Could not validate transaction'}
-    return jsonify(response), 300
+    return jsonify(response), 201
 
 @app.route('/transaction/get', methods=['GET'])
 def get_transactions():
@@ -114,22 +108,23 @@ def get_transactions():
 @app.route('/block/receive', methods=['POST'])
 def receive_block():
     data = request.get_json()
-    index = data['index']
-    previous_hash = data['previous_hash']
-    timestamp = data['timestamp']
-    nonce = data['nonce']
-    transactions = data['transactions']
-    hash = data['hash']
-    if not node.validate_block(index, previous_hash, timestamp, nonce, transactions, hash):
-        node.resolve_conflicts()
+    block = data['block']
+    index = block['index']
+    previous_hash = block['previous_hash']
+    timestamp = block['timestamp']
+    nonce = block['nonce']
+    transactions = block['transactions']
+    hash = block['hash']
+    queue = data['tran_queue']
+    if not node.validate_block(index, previous_hash, timestamp, nonce, transactions, hash, queue):
         response = {'Status': 'Concencus'}
-        return jsonify(response), 300
+        return jsonify(response), 201
     response = {'Status': 'Success'}
     return jsonify(response), 200
 
 @app.route('/blockchain/send', methods=['GET'])
 def return_blockchain():
-    response = {'blockchain' : node.chain.to_dict()}
+    response = {'blockchain' : node.chain.to_dict(), 'tran_queue' : node.tran_queue}
     return jsonify(response), 200
 
 
@@ -138,9 +133,9 @@ def return_balance():
     response = {'balance': node.wallet.balance()}
     return jsonify(response), 200
 
-@app.route('/utxos/send', methods=['GET'])
+@app.route('/ring', methods=['GET'])
 def return_ring():
-    response = {'utxos' : node.utxos_per_node}
+    response = {'ring' : node.ring}
     return jsonify(response), 200
 
 

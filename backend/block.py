@@ -47,7 +47,7 @@ class Block:
 
 	def add_transaction(self, transaction):
 		#add a transaction to the block
-		self.listOfTransactions.append(transaction.to_dict_signed())
+		self.listOfTransactions.append(transaction)
 
 
 
@@ -56,6 +56,6 @@ if __name__ == "__main__":
 	tran = Transaction(1, 2, 100, [])
 	wallet = wallet()
 	tran.Signature = tran.sign_transaction(wallet.private_key)
-	block.add_transaction(tran)
+	block.add_transaction(tran.to_dict_signed())
 	json_block = json.dumps(block.to_dict())
 	print(json_block)

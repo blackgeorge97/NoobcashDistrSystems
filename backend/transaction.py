@@ -48,7 +48,7 @@ class Transaction:
 		    'receiver' : self.receiver_address,  
 		    'amount' : self.amount, 
             'inputs' : self.transaction_inputs, 
-            'outputs' : self.transaction_outputs,
+            'outputs' : self.transaction_outputs
         })
         return tran_dict
 
