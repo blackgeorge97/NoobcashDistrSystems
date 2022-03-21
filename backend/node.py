@@ -314,8 +314,21 @@ class node:
 				if validation:
 					self.chain.chain = chain
 					self.tran_queue_lock.acquire()
-					self.tran_queue = new_queue
-					self.used_queue = new_used_queue
+					self.tran_queue = self.used_queue + self.tran_queue
+					for tran in new_queue:
+						if tran in self.tran_queue:
+							self.tran_queue.remove(tran)
+					for tran in new_used_queue:
+						if tran in self.tran_queue:
+							self.tran_queue.remove(tran)
+					for block in chain:
+						if len(self.tran_queue) == 0:
+							break
+						for tran in block.listOfTransactions:
+							if tran in self.tran_queue:
+								self.tran_queue.remove(tran)
+					self.tran_queue = self.tran_queue + new_used_queue + new_queue
+					self.used_queue = []
 					self.tran_queue_lock.release()
 					current_length = len(self.chain.chain)
 		self.mining_lock.release()
