@@ -38,6 +38,6 @@ for i in range(10):
 throughput = throughput / 10
 block_time = block_time / 10
 
-f = open("res5_c1_dif4.txt", "x")
+f = open("res10_c1_dif4.txt", "x")
 f.write(str(throughput) + ' ' + str(block_time))
 f.close()
