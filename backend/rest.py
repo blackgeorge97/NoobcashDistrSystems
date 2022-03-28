@@ -2,7 +2,6 @@
 from urllib import response
 import requests
 from flask import Flask, jsonify, request, render_template
-from flask_cors import CORS
 
 from block import Block
 from node import node
