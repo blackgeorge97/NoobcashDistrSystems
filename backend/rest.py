@@ -12,9 +12,10 @@ from transaction import Transaction
 from argparse import ArgumentParser
 import time
 import threading
+import json
 
 
-bootstrap_ip = '127.0.0.1'
+bootstrap_ip = '192.168.0.1'
 bootstrap_port = '5000'
 
 parser = ArgumentParser()
@@ -27,6 +28,10 @@ ip = args.ip
 port = args.port
 bootstrap = args.bootstrap
 nodes = args.nodes
+headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
+
+def post_function(url, message):
+	requests.post(url, data = message, headers = headers)
 
 app = Flask(__name__)
 app.config['JSON_SORT_KEYS'] = False
@@ -138,9 +143,27 @@ def return_balance():
     response = {'balance': node.wallet.balance()}
     return jsonify(response), 200
 
+@app.route('/test/run', methods=['GET'])
+def run_test():
+    num = node.max_nodes
+    base_url = '../testing_code/' + str(num) + 'nodes/'
+    filename = 'transactions' + str(node.id) + '.txt'
+    f = open(base_url + filename,'r')
+    lines = f.readlines()
+    url =  'http://' + str(ip) + ':' + str(port) + '/transaction/create'
+    for line in lines:
+        data = line.split()
+        receiver_id = data[0][2]
+        amount = data[1]
+        message = {'receiver_id' : int(receiver_id), 'amount' : int(amount)}
+        m = json.dumps(message)
+        post_function(url, m)
+    response = {'Status' : 'Success'}
+    return jsonify(response), 200
+
+
 @app.route('/test/results', methods=['GET'])
 def return_results():
-    print(node.tran_count)
     response = {'throughput' : node.tran_count / (node.last_block_time - node.start_time) ,'block_time' : node.total_sum_time / node.added_blocks}
     return jsonify(response), 200
 

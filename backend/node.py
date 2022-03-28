@@ -13,7 +13,7 @@ from concurrent.futures import ThreadPoolExecutor
 from collections import OrderedDict
 
 MINING_DIFFICULTY = 4
-CAPACITY = 5
+CAPACITY = 1
 headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
 
 class node:
@@ -76,6 +76,7 @@ class node:
 			if node['public_key'] == self.wallet.public_key:
 				self.id = node['id']
 			self.utxos_per_node[node['public_key']] = []
+		self.max_nodes = len(self.ring)
 		block = Block(index, previous_hash)
 		block.timestamp = timestamp
 		block.nonce = nonce
