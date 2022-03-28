@@ -13,7 +13,7 @@ from concurrent.futures import ThreadPoolExecutor
 from collections import OrderedDict
 
 MINING_DIFFICULTY = 4
-CAPACITY = 1
+CAPACITY = 5
 headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
 
 class node:
@@ -38,6 +38,14 @@ class node:
 		addr = ip + ':' + port
 		temp_node = {'id' : self.current_id_count, 'address' : addr, 'public_key' : self.wallet.public_key}
 		self.utxos_per_node[self.wallet.public_key] = []
+		#test values start
+		self.tran_count = 0
+		self.added_blocks = 0
+		self.total_sum_time = 0
+		self.last_block_time = 0
+		self.start_time = 0
+		self.start_progress = False
+        #test values end
 		self.ring.append(temp_node) 
 		if (bootstrap):
 			block = Block(0, 1)
@@ -77,7 +85,6 @@ class node:
 		output = listOfTransactions[0]['outputs'][0]
 		self.utxos_per_node[output['receiver']].append(output)
 		self.cur_block  = Block(block.index + 1, block.hash)
-		self.ready = True
 
 	def register_node_to_ring(self, address, public_key):
 		#add this node to the ring, only the bootstrap node can add a node to the ring after checking his wallet and ip:port address
@@ -92,10 +99,14 @@ class node:
 			for node in self.ring:
 				if not node['id'] == self.id:
 					requests.post('http://' + node['address'] + "/network/receive", data = message_json, headers = headers)
-			self.ready = True
 			for node in self.ring:
 				if not node['id'] == self.id:
 					self.create_transaction(self.wallet.public_key, node['public_key'], 100)
+			for node in self.ring:
+				if not node['id'] == self.id:
+					response = requests.get('http://' + node['address'] + '/network/ready').json()
+			self.ready = True
+			print("Network ready")
 			return True
 		return False
 
@@ -148,6 +159,13 @@ class node:
 		new_tran.transaction_outputs = outputs
 		new_tran.Signature = new_tran.sign_transaction(self.wallet.private_key)
 		self.tran_queue_lock.acquire()
+		#test
+		if self.start_progress == False and self.ready == True:
+			self.start_progress = True
+			self.start_time = time.time()
+			self.tran_count = 0
+		self.tran_count += 1
+		#test
 		self.tran_queue.append(new_tran.to_dict_signed())
 		self.tran_queue_lock.release()
 		self.broadcast_transaction(new_tran)
@@ -190,6 +208,13 @@ class node:
 				self.wallet.utxos.append(i)
 		self.utxos_lock.release()
 		self.tran_queue_lock.acquire()
+		#test
+		if self.start_progress == False and self.ready == True:
+			self.start_progress = True
+			self.start_time = time.time()
+			self.tran_count = 0
+		self.tran_count += 1
+		#test
 		self.tran_queue.append(new_tran.to_dict_signed())
 		self.tran_queue_lock.release()
 		self.queue_handler()
@@ -208,6 +233,11 @@ class node:
 			self.mining = True
 			self.mining_lock.release()
 			if self.mine_block(block):
+				#test
+				self.added_blocks += 1
+				self.total_sum_time += time.time() - block.timestamp
+				self.last_block_time = time.time()
+				#test
 				self.chain.add_new_block(block)
 				self.broadcast_block(block)
 			self.cur_block = Block(self.chain.cur_block().index + 1, self.chain.cur_block().hash)
@@ -258,6 +288,11 @@ class node:
 		block.listOfTransactions = listOfTransactions
 		block.hash = hash
 		if self.valid_proof(block) and cur_block.hash == block.previousHash:
+			#test
+			self.added_blocks += 1
+			self.total_sum_time += time.time() - block.timestamp
+			self.last_block_time = time.time()
+			#test
 			self.chain.add_new_block(block)
 			self.tran_queue_lock.acquire()
 			for tran in block.listOfTransactions:

@@ -1,5 +1,4 @@
 #from crypt import methods
-from tkinter.font import BOLD
 from urllib import response
 import requests
 from flask import Flask, jsonify, request, render_template
@@ -23,7 +22,6 @@ parser.add_argument('-ip', '--ip', default='127.0.0.1', type=str, help='Hosting 
 parser.add_argument('-p', '--port', default='5000', type=str, help='port to listen on')
 parser.add_argument('-b', '--bootstrap', default=False, type=bool, help='Bootstrap node or not')
 parser.add_argument('-n', '--nodes', default=0, type=int, help='Total number of nodes')
-parser
 args = parser.parse_args()
 ip = args.ip
 port = args.port
@@ -62,6 +60,13 @@ def receive_reg_data():
     transactions = block['transactions']
     hash = block['hash']
     node.receive_reg_info(ring, index, timestamp, previous_hash, nonce, transactions, hash)
+    response = {'Status' : 'Success'}
+    return jsonify(response), 200
+
+@app.route('/network/ready', methods=['GET'])
+def ready():
+    node.ready = True
+    print("Network Ready")
     response = {'Status' : 'Success'}
     return jsonify(response), 200
 
@@ -133,9 +138,10 @@ def return_balance():
     response = {'balance': node.wallet.balance()}
     return jsonify(response), 200
 
-@app.route('/ring', methods=['GET'])
-def return_ring():
-    response = {'ring' : node.ring}
+@app.route('/test/results', methods=['GET'])
+def return_results():
+    print(node.tran_count)
+    response = {'throughput' : node.tran_count / (node.last_block_time - node.start_time) ,'block_time' : node.total_sum_time / node.added_blocks}
     return jsonify(response), 200
 
 
