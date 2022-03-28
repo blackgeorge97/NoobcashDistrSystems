@@ -80,6 +80,9 @@ def create_transaction():
     data = request.get_json()
     id = data['receiver_id']
     amount = data['amount']
+    if id == node.id:
+        response = {'Status' : 'Cannot do transaction with yourself'}
+        return jsonify(response), 203
     for i in node.ring:
         if i['id'] == id:
             receiver_public_key = i['public_key']
