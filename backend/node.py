@@ -283,9 +283,6 @@ class node:
 
 	def validate_block(self, index, previous_hash, timestamp, nonce, listOfTransactions, hash, queue):
 		self.mining_lock.acquire()
-		if (self.mining == False):
-			self.mining_lock.release()
-			return True
 		self.mining = False
 		cur_block = self.chain.cur_block()
 		block = Block(index, previous_hash)
