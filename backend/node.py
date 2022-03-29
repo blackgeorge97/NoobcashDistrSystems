@@ -44,6 +44,7 @@ class node:
 		self.total_sum_time = 0
 		self.last_block_time = 0
 		self.start_time = 0
+		self.start_mine_time = 0
 		self.start_progress = False
         #test values end
 		self.ring.append(temp_node) 
@@ -230,17 +231,19 @@ class node:
 		block.add_transaction(tran)
 		self.tran_queue_lock.release()
 		if (len(block.listOfTransactions) == CAPACITY):
+			self.start_mine_time = time.time()
 			self.mining_lock.acquire()
 			self.mining = True
 			self.mining_lock.release()
 			if self.mine_block(block):
 				#test
 				self.added_blocks += 1
-				self.total_sum_time += time.time() - block.timestamp
+				self.total_sum_time += time.time() - self.start_mine_time
 				self.last_block_time = time.time()
 				#test
 				self.chain.add_new_block(block)
 				self.broadcast_block(block)
+				self.mining_lock.release()
 			self.cur_block = Block(self.chain.cur_block().index + 1, self.chain.cur_block().hash)
 		self.queue_handler()
 
@@ -257,7 +260,6 @@ class node:
 				self.used_queue = []
 				self.tran_queue_lock.release()
 				self.mining = False
-				self.mining_lock.release()
 				return True
 			self.mining_lock.release()
 			block.nonce += 1
@@ -291,7 +293,7 @@ class node:
 		if self.valid_proof(block) and cur_block.hash == block.previousHash:
 			#test
 			self.added_blocks += 1
-			self.total_sum_time += time.time() - block.timestamp
+			self.total_sum_time += time.time() - self.start_mine_time
 			self.last_block_time = time.time()
 			#test
 			self.chain.add_new_block(block)
