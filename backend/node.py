@@ -242,8 +242,8 @@ class node:
 				self.last_block_time = time.time()
 				#test
 				self.chain.add_new_block(block)
-				self.broadcast_block(block)
 				self.mining_lock.release()
+				self.broadcast_block(block)
 			self.cur_block = Block(self.chain.cur_block().index + 1, self.chain.cur_block().hash)
 		self.queue_handler()
 
@@ -283,6 +283,9 @@ class node:
 
 	def validate_block(self, index, previous_hash, timestamp, nonce, listOfTransactions, hash, queue):
 		self.mining_lock.acquire()
+		if (self.mining == False):
+			self.mining_lock.release()
+			return True
 		self.mining = False
 		cur_block = self.chain.cur_block()
 		block = Block(index, previous_hash)
