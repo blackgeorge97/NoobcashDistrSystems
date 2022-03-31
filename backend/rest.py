@@ -169,7 +169,10 @@ def return_results():
     response = {'throughput' : node.tran_count / (node.last_block_time - node.start_time) ,'block_time' : node.total_sum_time / node.added_blocks}
     return jsonify(response), 200
 
-
+@app.route('/ring', methods=['GET'])
+def return_ring():
+    response = {'ring' : node.ring}
+    return jsonify(response), 200
 
 
 # run it once fore every node
