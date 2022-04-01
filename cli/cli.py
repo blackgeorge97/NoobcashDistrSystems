@@ -65,6 +65,7 @@ while True:
 
         for r in ring:
             address = r["address"]
+            ip = address.split(':')[0]
             port = address.split(':')[1]
             ID = r["id"]
             balance = requests.get('http://' + ip + ':' + port +'/wallet/balance').json()
