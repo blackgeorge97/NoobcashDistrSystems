@@ -5,6 +5,7 @@ Usage:
 '''
 
 
+from email.headerregistry import Address
 import requests
 import json
 from argparse import ArgumentParser
@@ -63,7 +64,8 @@ while True:
         ring = requests.get('http://' + ip + ':' + bootstrap_port +'/ring').json()['ring']
 
         for r in ring:
-            port = r["address"][10:14]
+            address = r["address"]
+            port = address.split(':')[1]
             ID = r["id"]
             balance = requests.get('http://' + ip + ':' + port +'/wallet/balance').json()
             print(ID)
